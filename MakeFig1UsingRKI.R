@@ -45,6 +45,7 @@ ggplot(data = alldata2010, aes(x = week, y = incidence)) +
   xlab("Week of reporting") + ylab("Weekly incidence (per 100,000 population)")+
   scale_y_continuous(expand = c(0,0), breaks = seq(0, 12, 2)) +
   theme_bw() +
+  theme(legend.position = "bottom") +
   scale_x_continuous(breaks = breaks,
                      labels = labels) +
   geom_vline(xintercept = c(which(diff(alldata2010$o104wk) != 0) + 1,
