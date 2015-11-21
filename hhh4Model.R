@@ -283,5 +283,5 @@ summary(hhh4Model4, idx2Exp = TRUE, reparamPsi = TRUE)
 
 # Plot the model
 #pdf("Figures/hhh4Plot.pdf", width = 12, height = 8, paper = 'special') 
-plotHHH4_fitted(hhh4Model4, units = 8, ylim = c(0, 2500))
+plotHHH4_fitted(hhh4Model4, units = 1, ylim = c(0, 2500))
 #dev.off()
