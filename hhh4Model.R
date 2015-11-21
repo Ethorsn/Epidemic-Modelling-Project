@@ -286,8 +286,6 @@ load("Models/hhh4Model.RData")
 
 # Plot the model
 #pdf("Figures/hhh4Plot.pdf", width = 12, height = 8, paper = 'special') 
-plotHHH4_fitted(hhh4Model4, units = 1, ylim = c(0, 2500))
-#dev.off()
 #plotHHH4_fitted(hhh4Model4, units = 8, ylim = c(0, 2500))
 #dev.off()
 
@@ -382,4 +380,8 @@ ggplot(data = plot.data, aes(y = res, x = 1:length(res), col = Age:Sex)) +
   theme_bw()
 #dev.off()
 
+
+
+
 min(H%*%y - mu)
+
