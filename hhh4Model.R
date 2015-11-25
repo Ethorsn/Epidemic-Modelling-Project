@@ -288,3 +288,101 @@ load("Models/hhh4Model.RData")
 #pdf("Figures/hhh4Plot.pdf", width = 12, height = 8, paper = 'special') 
 #plotHHH4_fitted(hhh4Model4, units = 8, ylim = c(0, 2500))
 #dev.off()
+
+
+# Anscombe residuals (EXPERIMENTAL!)
+# Data.frame to get model.matrix
+df <- data.frame(cases = as.numeric(dataframes[[1]][-1, ]),
+                 AR1 = as.numeric(dataframes[[1]][-1, ]),
+                 Male = as.numeric(Sex[-1, ]),
+                 Female = 1*!as.numeric(Sex[-1, ]),
+                 A00_09 = as.numeric(Age[[1]][-1, ]),
+                 A10_19 = as.numeric(Age[[2]][-1, ]),
+                 A20_29 = as.numeric(Age[[3]][-1, ]),
+                 A30_39 = as.numeric(Age[[4]][-1, ]),
+                 A40_49 = as.numeric(Age[[5]][-1, ]),
+                 A50_59 = as.numeric(Age[[6]][-1, ]),
+                 A60_69 = as.numeric(Age[[7]][-1, ]),
+                 A70plus = as.numeric(Age[[8]][-1, ]),
+                 o104wk = as.numeric(dataframes[[2]][-1, ]),
+                 sin2 = as.numeric(dataframes[[4]][-1, ]),
+                 sin4 = as.numeric(dataframes[[5]][-1, ]),
+                 cos2 = as.numeric(dataframes[[12]][-1, ]),
+                 cos4 = as.numeric(dataframes[[13]][-1, ]),
+                 s2003 = as.numeric(Season[[1]][-1, ]),
+                 s2004 = as.numeric(Season[[2]][-1, ]),
+                 s2005 = as.numeric(Season[[3]][-1, ]),
+                 s2006 = as.numeric(Season[[4]][-1, ]),
+                 s2007 = as.numeric(Season[[5]][-1, ]),
+                 s2008 = as.numeric(Season[[6]][-1, ]),
+                 s2009 = as.numeric(Season[[7]][-1, ]),
+                 s2010 = as.numeric(Season[[8]][-1, ]),
+                 s2011 = as.numeric(Season[[9]][-1, ])
+)
+
+# Formula for model.matrix
+form <-
+  ~ AR1 + 1 + Male + A10_19 + A20_29 + A30_39 + 
+  A40_49 + A50_59 + A60_69 + A70plus + s2004 + s2005 + s2006 + s2007 + s2008 +
+  s2009 + s2010 + s2011 + I(s2003 * sin2) + I(s2003 * sin4) + I(s2003 * cos2) +
+  I(s2003 * cos4) + I(s2004 * sin2) + I(s2004 * sin4) + I(s2004 * cos2) + 
+  I(s2004 * cos4) + I(s2005 * sin2) + I(s2005 * sin4) + I(s2005 * cos2) +
+  I(s2005 * cos4) + I(s2006 * sin2) + I(s2006 * sin4) + I(s2006 * cos2) +
+  I(s2006 * cos4) + I(s2007 * sin2) + I(s2007 * sin4) + I(s2007 * cos2) + 
+  I(s2007 * cos4) + I(s2008 * sin2) + I(s2008 * sin4) + I(s2008 * cos2) + 
+  I(s2008 * cos4) + I(s2009 * sin2) + I(s2009 * sin4) + I(s2009 * cos2) + 
+  I(s2009 * cos4) + I(s2010 * sin2) + I(s2010 * sin4) + I(s2010 * cos2) +
+  I(s2010 * cos4) + I(s2011 * sin2) + I(s2011 * sin4) + I(s2011 * cos2) + 
+  I(s2011 * cos4) + I(o104wk * A00_09 * Female)  + I(o104wk * A10_19 * Female) +
+  I(o104wk * A20_29 * Female) + I(o104wk * A30_39 * Female) +  I(o104wk * A40_49 * Female) + 
+  I(o104wk * A50_59 * Female) + I(o104wk * A60_69 * Female) + I(o104wk * A70plus * Female) + 
+  I(o104wk * A00_09 * Male)  + I(o104wk * A10_19 * Male) +
+  I(o104wk * A20_29 * Male) + I(o104wk * A30_39 * Male) +  I(o104wk * A40_49 * Male) + 
+  I(o104wk * A50_59 * Male) + I(o104wk * A60_69 * Male) + I(o104wk * A70plus * Male)
+
+
+# Get model matrix
+X <- model.matrix(form, data = df)
+X <- X[, c(2, 1, 3:ncol(X))]
+
+# Get hat matrix (THIS IS FOR OLS!)
+H <- X %*% solve(t(X) %*% X) %*% t(X)
+
+# Which model
+model <- hhh4Model4.wo.strat.od
+
+# Coefficients
+beta <- coefficients(model)[-length(coefficients(model))]
+
+# Take out observed
+y <- as.numeric(model$stsObj@observed[-1, ])
+
+# Take out fitted
+mu <- as.numeric(fitted.values(model))
+
+# Dispersion (Is this correct?)
+phi <- 1 + exp(-model$coefficients["-log(overdisp)"])*mu
+
+# Anscombe residuals
+A.res <- 3/2 * (y^(2/3) * mu^(-1/6) - mu^(1/2))
+A.res <- A.res/sqrt(phi * (1 - diag(H)))
+
+# Plot the residuals
+# plot(A.res)
+
+# Get age and sex
+data.for.strat <- alldata[-which(alldata$date == min(alldata$date)), ]
+plot.data.anscombe <- data.frame(res = A.res,
+                        Age = data.for.strat$Age,
+                        Sex = data.for.strat$Sex)
+
+# plot residuals
+#pdf("Figures/AnscombeResidExperimental.pdf", width = 6, height = 4, paper = 'special')
+#ggplot(data = plot.data, aes(y = res, x = 1:length(res), col = Age:Sex)) +
+#  geom_point() +
+#  xlab("Observation") + 
+#  ylab("Anscombe residuals") +
+#  theme_bw()
+#dev.off()
+
+#save(plot.data.anscombe, file = "Models/plotdfAnscombe.RData")

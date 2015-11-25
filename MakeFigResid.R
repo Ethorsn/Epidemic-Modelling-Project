@@ -43,16 +43,16 @@ Plot.Resids <- function(Z){
   #
   
   # Change data.frame to long format
-  plot.df <- suppressMessages(melt(Z))
+  # plot.df <- suppressMessages(melt(Z))
   
   # Get nr rows
-  N.row <- nrow(Z)
+  N.row <- nrow(Z)/4
   
   # Make an row id variable
   plot.df$nrow <- seq(1, N.row, 1)
   
   # Do the plotting
-  p <- ggplot(plot.df, aes(y = value, x = nrow, color = AgeClass)) +
+  p <- ggplot(plot.df, aes(y = res, x = nrow, color = AgeClass)) +
     geom_point() +
     theme_bw() +
     xlab("Observation") +
